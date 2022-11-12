@@ -7,7 +7,7 @@ import { styled } from "@mui/system";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import Link from "@mui/material/Link";
-import LOGIN_IMAGE from "../../assets/login.svg";
+import FORGOTPW_IMAGE from "../../assets/forgotPW.svg";
 import { Stack } from "@mui/material";
 import HeightBox from "../../components/HeightBox";
 import * as Yup from "yup";
@@ -31,13 +31,28 @@ const CustomButton = styled(Button)(({ theme }) => ({
 }));
 
 const validationSchema = Yup.object().shape({
-  email: Yup.string()
+  password: Yup.string()
     .required()
-    .email("Must be a valid email")
-    .label("email")
-    .min(3)
-    .max(36),
-  password: Yup.string().required().min(8).max(15).label("Password"),
+    .min(8)
+    .max(15)
+    .label("Password")
+    .matches(/\d+/, "Password should contain at least one number")
+    .matches(
+      /[a-z]+/,
+      "Password should contain at least one lowercase character"
+    )
+    .matches(
+      /[A-Z]+/,
+      "Password should contain at least one uppercase character"
+    )
+    .matches(
+      /[!@#$%^&*()-+]+/,
+      "Password should contain at least one special character"
+    ),
+  confirmPassword: Yup.string()
+    .required()
+    .label("Confirm Password")
+    .oneOf([Yup.ref("password"), null], "Passwords must match"),
 });
 
 export default function SignIn() {
@@ -54,25 +69,28 @@ export default function SignIn() {
     <div style={{ overflowY: "hidden" }}>
       <BlackHorizontalBar phrase="Ninety Camera" />
       <HeightBox height={40} />
-      <Stack direction="row" spacing={15}>
+      <Stack direction="row" spacing={10}>
+        <div style={{ padding: 100 }}>
+          <img src={FORGOTPW_IMAGE} alt="" style={{ width: "30vw" }} />
+        </div>
         <div style={{ paddingLeft: "100px", paddingTop: 50 }}>
           <h2 style={{ fontSize: 48, fontFamily: "Inter", margin: 0 }}>
-            Welcome Back!
+            Reset Password
           </h2>
           <HeightBox height={30} />
           <Stack direction="column" spacing={2}>
             <Formik
               initialValues={{
-                email: "",
                 password: "",
-              }}
-              onSubmit={(values) => {
-                const data = {
-                  email: values.email,
-                  password: values.password,
-                };
+                confirmPassword: "",
               }}
               validationSchema={validationSchema}
+              onSubmit={(values) => {
+                const data = {
+                  password: values.password,
+                };
+                console.log(data);
+              }}
             >
               {(formikProps) => {
                 const { errors, handleSubmit, handleChange, touched } =
@@ -81,14 +99,6 @@ export default function SignIn() {
                 return (
                   <React.Fragment>
                     <CustomTextField
-                      label="Email"
-                      variant="outlined"
-                      error={errors.email && touched.email}
-                      helperText={errors.email || ""}
-                      onChange={(event) => handleChange("email")(event)}
-                    />
-
-                    <CustomTextField
                       label="Password"
                       variant="outlined"
                       type="password"
@@ -96,14 +106,17 @@ export default function SignIn() {
                       helperText={errors.password || ""}
                       onChange={(event) => handleChange("password")(event)}
                     />
-                    <Button
-                      variant="text"
-                      size="large"
-                      onClick={() => alert("Check your inbox! \nsAn email has sent to your email!")}
-                      sx={{ color: "#6C63FF" }}
-                    >
-                      Forgot Password?
-                    </Button>
+
+                    <CustomTextField
+                      label="Confirm Password"
+                      variant="outlined"
+                      type="password"
+                      error={errors.confirmPassword && touched.confirmPassword}
+                      helperText={errors.confirmPassword || ""}
+                      onChange={(event) =>
+                        handleChange("confirmPassword")(event)
+                      }
+                    />
 
                     <CustomButton
                       type="submit"
@@ -113,8 +126,16 @@ export default function SignIn() {
                       disabled={loading}
                       sx={{ backgroundColor: "#6C63FF" }}
                     >
-                      {loading ? <CircularProgress /> : "Sign In"}
+                      {loading ? <CircularProgress /> : "Reset Password"}
                     </CustomButton>
+                    <Button
+                      variant="text"
+                      size="large"
+                      style={{ textTransform: "none" }}
+                      onClick={() => navigate("/")}
+                    >
+                      Cancel
+                    </Button>
                   </React.Fragment>
                 );
               }}
@@ -122,9 +143,6 @@ export default function SignIn() {
           </Stack>
 
           <HeightBox height={15} />
-        </div>
-        <div style={{ padding: 100 }}>
-          <img src={LOGIN_IMAGE} alt="" style={{ width: "40vw" }} />
         </div>
       </Stack>
     </div>
